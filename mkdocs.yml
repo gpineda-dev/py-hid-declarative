@@ -1,0 +1,105 @@
+site_name: HID Declarative
+site_description: >
+  Modern, pure Python stack for USB HID: Declarative schemas, optimized compilation, and zero-dependency runtime codec.
+repo_url: https://github.com/gpineda-dev/py-hid-declarative
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.integrate
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - navigation.sections
+  palette:
+    - scheme: default
+      media: "(prefers-color-scheme: light)"
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      media: "(prefers-color-scheme: dark)"
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            show_source: true
+            show_root_toc_entry: false
+            show_root_heading: true
+  - blog:
+      blog_dir: blog
+      post_date_format: full  # yyyy/mm/dd
+  - termynal:
+      title: bash
+      buttons: macos
+      prompt_literal_start:
+        - "$"
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - attr_list
+  - md_in_html
+
+
+nav:
+  - Home: index.md
+
+  - Installation: install.md
+  
+  - Learn:
+    - Overview: learn/index.md
+    - Quick Start: learn/quickstart.md
+    - Tracks:
+      - For Makers (Python Gadgets): learn/maker/mouse.md
+      - For Embedded Devs (C/Firmware): learn/embedded/export_c.md
+      - For QA/DevOps (Testing): learn/devops/automation.md
+
+  - How-To Guides:
+    - Dump Hardware: how-to/dump_linux.md
+    - Decode Logs: how-to/analyze_logs.md
+    - Composite Devices: how-to/composite_device.md
+
+  - Concepts (Deep Dive):
+    - HID 101: concepts/hid_primer.md
+    - Binary Anatomy: concepts/descriptor_anatomy.md
+    - Library Internals: concepts/architecture.md
+
+  - Reference:
+    - CLI Tool: reference/cli.md
+    - Python SDK: 
+      - Overview: reference/lib/overview.md      
+    - Supported Usages: reference/spec_tables.md
+
+  - Blog & Project:
+    - Latest News: blog/index.md
