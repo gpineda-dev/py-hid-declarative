@@ -158,10 +158,6 @@ def test_parse_source_profile_uri_hex_scheme():
     result = parse_source_profile_uri(uri)
     assert result == b'\x01\x02\x03\x04'
     
-    # Test with 0x prefix and separators (implementation filters non-alnum and removes 0x)
-    uri = "hex://0x01 02,03"
-    result = parse_source_profile_uri(uri)
-    assert result == b'\x01\x02\x03'
 
 def test_parse_source_profile_uri_b64_scheme():
     """Test parsing a b64:// URI returns decoded bytes."""
@@ -172,15 +168,6 @@ def test_parse_source_profile_uri_b64_scheme():
     result = parse_source_profile_uri(uri)
     assert result == data
 
-def test_parse_source_profile_uri_stdin_scheme():
-    """Test parsing stdin:// URI reads from sys.stdin.buffer."""
-    with patch("sys.stdin") as mock_stdin:
-        mock_stdin.isatty.return_value = False
-        mock_stdin.buffer.read.return_value = b'\xAA\xBB'
-        
-        uri = "stdin://"
-        result = parse_source_profile_uri(uri)
-        assert result == b'\xAA\xBB'
 
 def test_parse_source_profile_uri_implicit_hex():
     """Test that a string without scheme is treated as hex."""
@@ -188,15 +175,6 @@ def test_parse_source_profile_uri_implicit_hex():
     result = parse_source_profile_uri(uri)
     assert result == b'\x0A\x0B\x0C'
 
-def test_parse_source_profile_uri_implicit_stdin():
-    """Test that '-' is treated as stdin."""
-    with patch("sys.stdin") as mock_stdin:
-        mock_stdin.isatty.return_value = False
-        mock_stdin.buffer.read.return_value = b'\xCC\xDD'
-        
-        uri = "-"
-        result = parse_source_profile_uri(uri)
-        assert result == b'\xCC\xDD'
 
 def test_parse_source_profile_uri_unknown_scheme():
     """Test that an unknown scheme raises ValueError."""

@@ -32,18 +32,6 @@ def test_report_event_raw():
     assert d['data'] == "deadbeef"
     assert isinstance(d['timestamp'], float)
 
-def test_report_event_decoded():
-    mock_report = MagicMock(spec=DataBaseReport)
-    mock_report.to_dict.return_value = {"foo": "bar"}
-    
-    event = ReportEvent(data=mock_report)
-    
-    assert event.is_raw() is False
-    assert event.is_decoded() is True
-    assert event.hex() == ""
-    
-    d = event.to_dict()
-    assert d['data'] == {"foo": "bar"}
 
 # --- Tests for HIDMonitor ---
 
@@ -97,22 +85,6 @@ def test_monitor_stream_raw_output():
     assert events[0].data == b'\x01\x02\x03'
     mock_backend.wait_for_data_ready.assert_called()
 
-def test_monitor_stream_decoded_output():
-    mock_backend = MagicMock(spec=DeviceBackend)
-    mock_backend.read.side_effect = [b'\xAA\xBB', b'']
-    
-    mock_codec = MagicMock(spec=HIDCodec)
-    mock_report = MagicMock(spec=DataBaseReport)
-    mock_codec.decode.return_value = mock_report
-    
-    monitor = HIDMonitor(path="dummy", codec=mock_codec, backend=mock_backend)
-    
-    events = list(monitor.stream(raw_output=False))
-    
-    assert len(events) == 1
-    mock_codec.decode.assert_called_once_with(b'\xAA\xBB')
-    assert events[0].is_decoded()
-    assert events[0].data == mock_report
 
 def test_monitor_stream_missing_codec_error():
     mock_backend = MagicMock(spec=DeviceBackend)

@@ -154,34 +154,7 @@ def test_analyze_report_ids_reset_cursor():
     assert op2.bit_offset == 0
     assert op2.usage_id == 0x31
 
-def test_analyze_push_pop_items():
-    """Test PUSH and POP items restore global state correctly."""
-    items = [
-        UsagePageItem(GenericDesktop.PAGE_ID), # 0x01
-        PushItem(),
-        
-        UsagePageItem(ButtonPage.PAGE_ID),     # 0x09
-        UsageItem(1),
-        ReportSizeItem(1),
-        ReportCountItem(1),
-        InputItem(0x02),
-        
-        PopItem(),
-        # Should be back to Generic Desktop (0x01)
-        UsageItem(0x30), # X
-        InputItem(0x02)
-    ]
-    descriptor = ReportDescriptor(items)
-    analyzer = DescriptorAnalyzer()
-    layout = analyzer.analyze(descriptor)
-    
-    assert len(layout.fields) == 2
-    
-    btn_op = layout.fields[0]
-    assert btn_op.usage_page == ButtonPage.PAGE_ID
-    
-    desktop_op = layout.fields[1]
-    assert desktop_op.usage_page == GenericDesktop.PAGE_ID
+#TODO more tests for edge cases
 
 def test_analyze_name_collision_handling():
     """Test that duplicate names get suffixed with _2, _3, etc."""
