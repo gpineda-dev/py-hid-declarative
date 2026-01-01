@@ -4,14 +4,12 @@ from pathlib import Path
 from typing import Tuple, Union
 
 import urllib.parse
+from hid_declarative.runtime.context import HIDContext
 from hid_declarative.spec.descriptor import ReportDescriptor
 
 from .profile import HIDProfile
 from .compiler import HIDCompiler
 from .parser import HIDParser
-from .runtime.analyzer import DescriptorAnalyzer
-from .runtime.codec import HIDCodec
-from .runtime.layout import DescriptorLayout
 import base64
 
 __doc__ = """
@@ -176,14 +174,14 @@ def load_profile(target: Union[bytes, Path, HIDProfile]) -> HIDProfile:
 
     raise LoaderError("Unsupported target type for loading HIDProfile.")
 
-def load_engine(target: Union[str, HIDProfile]) -> Tuple[HIDCodec, DescriptorLayout, HIDProfile]:
+def load_engine(target: Union[str, HIDProfile]) -> HIDContext:
     """
     Universal Factory.
     Takes a target (.bin or .py:var), HIDProfile and returns the codec, layout and profile.
     Arguments:
         target: Path to binary descriptor file, script reference, or HIDProfile instance.
     Returns:
-        Tuple of (HIDCodec, ReportLayout, HIDProfile)
+        Tuple of HIDContext
     Raises:
         LoaderError if loading fails
     """
@@ -209,9 +207,7 @@ def load_engine(target: Union[str, HIDProfile]) -> Tuple[HIDCodec, DescriptorLay
     else:
         raise LoaderError("Profile is neither compilable nor parsable.")
     
-    analyzer = DescriptorAnalyzer()
-    layout = analyzer.analyze(items)
-    codec = HIDCodec(layout)
-
-    return codec, layout, profile
+    return HIDContext(
+        profile=profile
+    )
 

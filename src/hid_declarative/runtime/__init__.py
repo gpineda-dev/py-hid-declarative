@@ -1,5 +1,6 @@
 from .analyzer import DescriptorAnalyzer, ScanState
-from .codec import HIDCodec
+from .codec import HIDReportCodec
+from .context import HIDContext
 from .layout import ReportLayout, FieldOp, DescriptorLayout
 from .reports import DataInputReport, DataOutputReport, DataFeatureReport, DataReportType
 
@@ -8,8 +9,11 @@ __all__ = [
     "DescriptorAnalyzer",
     "ScanState",
 
+    # Context
+    "HIDContext",
+
     # Codec
-    "HIDCodec",
+    "HIDReportCodec",
 
     # Layout
     "ReportLayout",

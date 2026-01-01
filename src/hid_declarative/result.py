@@ -2,6 +2,7 @@ import base64
 from dataclasses import dataclass
 from typing import List, Dict, Any
 
+from hid_declarative.runtime.context import HIDContext
 from hid_declarative.spec import HIDLookup
 from hid_declarative.spec.descriptor import ReportDescriptor
 
@@ -16,6 +17,14 @@ class DescriptorResult:
     """Holds the result of analyzing a HID report descriptor."""
     descriptor: ReportDescriptor
     layout: DescriptorLayout
+
+    @classmethod
+    def from_context(cls, context: "HIDContext") -> "DescriptorResult":
+        """Creates a DescriptorResult from a HIDContext."""
+        return cls(
+            descriptor=context.descriptor,
+            layout=context.descriptor_layout
+        )
 
     @property
     def raw_bytes(self) -> bytes:

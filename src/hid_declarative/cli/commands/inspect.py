@@ -13,6 +13,7 @@ import hid_declarative as hid
 from hid_declarative import spec, runtime
 from hid_declarative.loader import load_engine
 from hid_declarative.result import DescriptorResult
+from hid_declarative.runtime.context import HIDContext
 
 app = typer.Typer()
 
@@ -31,17 +32,12 @@ def main(
         raise typer.Exit(1)
     
     # 2. Load Engine from Profile
-    try:
-        _, layout, profile = load_engine(profile)
-    except Exception as e:
-        rprint(f"[red]Error loading engine:[/red] {e}")
-        raise typer.Exit(1)
+    context: HIDContext = load_engine(profile)
+    layout = context.descriptor_layout
+    
 
     # 4. Create Unified Result
-    result = DescriptorResult(
-        descriptor=profile.descriptor,
-        layout=layout
-    )
+    result = DescriptorResult.from_context(context)
 
     # --- JSON OUTPUT ---
     if json_output:

@@ -95,14 +95,25 @@ class ReportLayoutGroup:
     _size_bytes: int = None
     report_id: int = 0
 
+    parent_layout: Optional['ReportLayout'] = field(default=None, repr=False, compare=False)
+
     @property
     def size_bytes(self) -> int:
         """Cached size in bytes of the report group, recomputed when fields are added."""
         if self._size_bytes is None:
             self._size_bytes = self.compute_endbyte()
         return self._size_bytes
-
-
+    
+    def is_bound_to_parent(self, candidate: Optional['ReportLayout'] = None) -> bool:
+        """Checks if this group is bound to the specified parent ReportLayout."""
+        if self.parent_layout is None:
+            return False
+        
+        if candidate is None:
+            return True
+        
+        return self.parent_layout is candidate
+    
     def add_field(self, field: FieldOp):
         """Add a field to the report group and invalidate cached size."""
         assert field.report_type == self.report_type, f"Field report type mismatch ({field.report_type} != {self.report_type})"
@@ -175,6 +186,27 @@ class ReportLayout:
     feature: ReportLayoutGroup = field(default_factory=lambda: ReportLayoutGroup(report_type="feature"))
 
     report_id: int = 0
+
+    # Chains back to parent descriptor
+    parent_descriptor: Optional['DescriptorLayout'] = field(default=None, repr=False, compare=False)
+
+    def __post_init__(self):
+        self.input.report_id = self.report_id
+        self.output.report_id = self.report_id
+        self.feature.report_id = self.report_id
+        self.input.parent_layout = self
+        self.output.parent_layout = self
+        self.feature.parent_layout = self
+
+    def is_bound_to_parent(self, candidate: Optional['DescriptorLayout'] = None) -> bool:
+        """Checks if this layout is bound to the specified parent DescriptorLayout."""
+        if self.parent_descriptor is None:
+            return False
+        
+        if candidate is None:
+            return True
+        
+        return self.parent_descriptor is candidate
 
     @classmethod
     def list_group_types(cls) -> List[str]:
@@ -264,6 +296,16 @@ class DescriptorLayout:
             raise KeyError(f"Report ID {report_id} not found in layout.")
         return layout
     
+    def get_all_groups(self) -> List[ReportLayoutGroup]:
+        """Returns all ReportLayoutGroups across all ReportLayouts."""
+        all_groups = []
+        for rid in self.reports:
+            layout = self.reports[rid]
+            all_groups.append(layout.input)
+            all_groups.append(layout.output)
+            all_groups.append(layout.feature)
+        return all_groups
+    
     def get_report_layout_group(self, report_id: int, report_type: Literal["input", "output", "feature"], raise_if_not_found: bool = False) -> Optional[ReportLayoutGroup]:
         """
         Retrieves the ReportLayoutGroup for a given report ID and type.
@@ -288,6 +330,7 @@ class DescriptorLayout:
 
     def set_report_layout(self, report_layout: ReportLayout):
         """Sets (replaces) the ReportLayout for a given report ID."""
+        report_layout.parent_descriptor = self
         self.reports[report_layout.report_id] = report_layout
 
     def add_field(self, field: FieldOp, report_id: Optional[int] = None):
@@ -300,7 +343,9 @@ class DescriptorLayout:
     def initialise_report_layout(self, report_id: int):
         """Initializes an empty ReportLayout for the given report ID."""
         if report_id not in self.reports:
-            self.reports[report_id] = ReportLayout(report_id=report_id)
+            layout = ReportLayout(report_id=report_id)
+            layout.parent_descriptor = self
+            self.reports[report_id] = layout
 
     def resolve_report_id(self, report_id: Optional[int] = None, raise_if_not_found: bool = True) -> int:
         """Resolves the report ID, ensuring it's unambiguous (ie. only one report ID exists if none is provided)."""

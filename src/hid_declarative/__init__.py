@@ -20,7 +20,8 @@ from .compiler import HIDCompiler
 from .parser import HIDParser
 
 # 5. Runtime (Exécution & Décodage)
-from .runtime.codec import HIDCodec
+from .runtime.codec import HIDReportCodec
+from .runtime.context import HIDContext
 from .runtime.analyzer import DescriptorAnalyzer, ScanState
 from .runtime.layout import ReportLayout, FieldOp, DescriptorLayout
 
@@ -47,7 +48,8 @@ __all__ = [
     "HIDParser",
 
     # Runtime
-    "HIDCodec",
+    "HIDReportCodec",
+    "HIDContext",
     "DescriptorAnalyzer",
     "ScanState",
     "ReportLayout",

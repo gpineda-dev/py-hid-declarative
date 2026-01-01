@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 from hid_declarative.runtime.layout import ReportLayout, ReportLayoutGroup
+import weakref
 
 if TYPE_CHECKING:
-    from .codec import HIDCodec
+    from .context import HIDContext
 
 __doc__ = """
 HID Reports module defines classes for representing HID reports (input, output, feature)
@@ -48,6 +49,9 @@ class DataBaseReport:
         self.layout = layout
         self._values = layout.get_default_values()
 
+        # Weak reference to the HIDContext to avoid circular references and allow proper garbage collection
+        self._context_ref: Optional[weakref.ReferenceType['HIDContext']] = None
+
         if initial_data:
             self._values.update(initial_data)
 
@@ -59,6 +63,22 @@ class DataBaseReport:
     def report_id(self) -> int:
         return self.layout.report_id
     
+    def _attach_context(self, context: 'HIDContext'):
+        assert isinstance(context, HIDContext), "context must be an instance of HIDContext"
+
+        report_layout_source = self.layout.parent_layout.parent_descriptor if self.layout.parent_layout else None
+        context_layout_source = context.descriptor_layout
+
+        if report_layout_source is not context_layout_source:
+            raise ValueError(
+                "Cannot attach context: ReportLayout's parent DescriptorLayout does not match Context's DescriptorLayout."
+            )
+        
+        self._context_ref = weakref.ref(context)
+
+    def is_context_attached(self) -> bool:
+        return self._context_ref is not None
+
     def validate(self):
         self.layout.validate(self._values)
     
@@ -76,12 +96,21 @@ class DataBaseReport:
     def to_dict(self) -> Dict[str, Any]:
         return dict(self._values)
     
-    def encode(self, codec: 'HIDCodec') -> bytes:
-        """Encodes the report data into raw bytes using the provided HIDCodec once validated."""
-        self.validate()
-        return codec.encode(data=self._values, report_id=self.report_id, report_type=self.report_type)
+    def encode(self, validate: bool = True) -> bytes:
+        """Encodes the report data into raw bytes using the attached HIDContext's codec once validated."""
+        if not self.is_context_attached():
+            raise ValueError("Cannot encode report: No HIDContext is attached.")
+        
+        context = self._context_ref()
+        assert context is not None  # for type checker
+        return context.encode(
+            data=self._values,
+            report_id=self.report_id,
+            report_type=self.report_type,
+            validate=validate
+        )
     
-
+    
     def delta(self, other: 'DataBaseReport') -> Dict[str, Union[int, float]]:
         """Computes the delta between this report and another report."""
         if self.report_id != other.report_id:
